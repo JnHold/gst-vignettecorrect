@@ -1,0 +1,21 @@
+[project]
+name = "vignettecorrect"
+version = "0.1.0"
+description = "Reference implementation and config tools for the vignettecorrect GStreamer element"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["vignettecorrect"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

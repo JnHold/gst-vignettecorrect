@@ -1,0 +1,11 @@
+# Kowa LM3NCM-WP (3.5 mm, F2.4) on a FLIR BFS-PGE-63S4C-C at full 3072x2048.
+# Relative illumination digitised from Kowa's chart (587.56 nm, wide open).
+# The chart is a design simulation in air; see README, "Limits".
+[vignette]
+image-height-mm=0.0;0.45;0.9;1.35;1.8;2.25;2.7;3.15;3.6;4.05;4.3;4.5
+relative-illumination=1.0;1.0;0.99;0.98;0.97;0.96;0.94;0.88;0.78;0.6;0.5;0.34
+pixel-size-um=2.4
+centre-x=0.5
+centre-y=0.5
+highlight-mode=knee
+knee=200.0
