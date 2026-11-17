@@ -26,8 +26,6 @@ corrected = apply_gain(image, gain, knee=config.knee, highlight_mode=config.high
 
 Channel order does not matter: the maths uses each pixel's brightest channel and scales all three alike. Gain is applied to the stored 8-bit values, with no linearisation.
 
-Training images and the device must use the same config. Never correct an image twice.
-
 ## Config file
 
 One file per camera and lens setup, in GLib key-file syntax. Lists are separated by `;`.
@@ -68,20 +66,35 @@ A correction with values above 255 is not possible on 8-bit frames.
 
 - It corrects every frame in a buffer, so it works on one stream or on a batch after `nvstreammux`. After the muxer, all streams share one config.
 - A missing or invalid config, a non-RGBA frame or a CUDA failure stops the pipeline with an error. It never runs uncorrected silently.
-- Frames are modified without a writable copy, so do not put it on one branch of a `tee`.
+- Do not put it on one branch of a `tee`. A `tee` gives every branch the same frame in memory, and this element changes that frame's pixels, so the other branches would receive corrected or half-corrected frames too. Place it before the `tee` instead.
 - Run with `GST_DEBUG=vignettecorrect:4` to log per-frame timings and the number of mappings made when the stream stops.
 
 ### Build
 
-On the Jetson, with DeepStream and the CUDA toolkit installed:
+The element is built on the Jetson itself. It needs:
+
+- NVIDIA DeepStream SDK (tested with 7.1), in `/opt/nvidia/deepstream/deepstream`
+- The CUDA toolkit that comes with JetPack, for `nvcc`, in `/usr/local/cuda`
+- GStreamer development files: `sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev`
 
 ```bash
-cd plugin
+git clone https://github.com/JnHold/gst-vignettecorrect.git
+cd gst-vignettecorrect/plugin
 make
-GST_PLUGIN_PATH=$PWD gst-inspect-1.0 vignettecorrect
 ```
 
-`GST_PLUGIN_PATH` loads the element without installing anything system-wide.
+This produces `libgstvignettecorrect.so`. If DeepStream or CUDA are installed elsewhere, pass their locations: `make DS_DIR=/path/to/deepstream CUDA_DIR=/path/to/cuda`.
+
+Then tell GStreamer where the plugin is, and check that it loads:
+
+```bash
+export GST_PLUGIN_PATH=$PWD
+gst-inspect-1.0 vignettecorrect
+```
+
+`GST_PLUGIN_PATH` must be set in every shell or service that runs a pipeline using the element; nothing is installed system-wide. An application can instead load the file itself with `gst_plugin_load_file()` (`Gst.Plugin.load_file()` in Python).
+
+The Python reference and the verify tool need `numpy`; the tests also need `pytest`.
 
 ### Verify on the device
 
@@ -103,7 +116,6 @@ No GPU, camera or Jetson needed. `tests/test_cpp_host.py` compiles `plugin/host_
 ## Limits
 
 - **The chart is a design value:** manufacturer charts are usually simulations in air at one wavelength and one aperture. Stopping the lens down flattens falloff, so a wide-open chart over-corrects the corners.
-- **Water and housings are not modelled.**
 - **Noise:** corner gain of about 2.5× also amplifies sensor noise and compression artefacts.
 - **Lens centre:** assumed at the frame centre unless set in the config.
 
