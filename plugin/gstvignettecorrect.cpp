@@ -456,4 +456,4 @@ static gboolean plugin_init(GstPlugin *plugin)
 
 GST_PLUGIN_DEFINE(GST_VERSION_MAJOR, GST_VERSION_MINOR, vignettecorrect,
                   "Lens falloff (vignetting) correction for NVMM frames", plugin_init, "0.1.0",
-                  "MIT/X11", PACKAGE, "https://github.com/")
+                  "MIT/X11", PACKAGE, "https://github.com/JnHold/gst-vignettecorrect")
